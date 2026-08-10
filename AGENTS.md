@@ -12,6 +12,7 @@ xmake f -y -m release       # 配置（CI 里还会 -p <platform> -a <arch>）
 - 单元测试：2048 与俄罗斯方块逻辑，共 26 个断言。命令见 README（`clang -O2 ... test/test_t2048.c src/tui.c`）。
 - 布局冒烟：`bash check_size.sh <cols> <rows> [游戏键]`（sh + node 解析 ANSI 光标码判断是否溢出）。环境变量 `BIN` 可覆盖被测二进制。
 - **本机是 Termux（bionic libc）**：本地编译通过≠ glibc 通过（见下文陷阱 1）。CI 才是 glibc/macOS 的真实验证。
+- **本机 `/tmp` 不存在、`/` 只读**（Android，非 root）：临时文件一律用 `$TMPDIR`（`$PREFIX/tmp`，可写），不要写死 `/tmp` 路径。
 
 ## 编码规范（重要）
 

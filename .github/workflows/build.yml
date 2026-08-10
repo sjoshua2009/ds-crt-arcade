@@ -1,0 +1,61 @@
+name: build-binaries
+
+# 触发方式：
+#   - push 到 main
+#   - 打 v* 标签（准备发布）
+#   - 手动触发（Actions 页面 "Run workflow"）
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    # Windows arm64 需要交叉编译工具链，标记为实验性：失败不阻塞其他产物
+    continue-on-error: ${{ matrix.experimental }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: windows-x64,   os: windows-latest,   platform: windows, arch: x64,   experimental: false }
+          - { name: windows-arm64, os: windows-latest,   platform: windows, arch: arm64, experimental: true  }
+          - { name: macos-x64,     os: macos-13,         platform: macosx,  arch: x64,   experimental: false }
+          - { name: macos-arm64,   os: macos-14,         platform: macosx,  arch: arm64, experimental: false }
+          - { name: linux-x64,     os: ubuntu-latest,    platform: linux,   arch: x64,   experimental: false }
+          - { name: linux-arm64,   os: ubuntu-24.04-arm, platform: linux,   arch: arm64, experimental: false }
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 xmake
+        uses: xmake-io/github-action-setup-xmake@v1
+        with:
+          xmake-version: latest
+
+      - name: 安装 clang（Windows 使用，避免 MSVC 对 C11 复合字面量的限制）
+        if: runner.os == 'Windows'
+        run: choco install llvm -y --no-progress
+
+      - name: 配置并构建
+        shell: bash
+        run: |
+          xmake f -y -m release -p ${{ matrix.platform }} -a ${{ matrix.arch }}
+          xmake -y
+
+      - name: 收集二进制产物
+        shell: bash
+        run: |
+          mkdir -p dist
+          OUT="$(xmake --show-output-dir)"
+          if [ -f "$OUT/lobby.exe" ]; then BIN="$OUT/lobby.exe"; else BIN="$OUT/lobby"; fi
+          cp "$BIN" dist/
+          echo "已收集: $(basename "$BIN")"
+
+      - name: 上传产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: ds-crt-arcade-${{ matrix.name }}
+          path: dist/
+          if-no-files-found: error

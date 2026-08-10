@@ -1,0 +1,12 @@
+# xmake 构建产物
+build/
+.xmake/
+
+# 测试与验证临时文件
+.lob.out
+.sm.err
+.ghost_*.cap
+.ghost_*.txt
+.check_ghost.js
+.t2048
+.ttetris

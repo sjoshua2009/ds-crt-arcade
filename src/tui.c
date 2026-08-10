@@ -1,3 +1,8 @@
+/* -std=c11 会定义 __STRICT_ANSI__，导致 glibc 不声明 nanosleep/getpid 等
+ * POSIX 符号。_DEFAULT_SOURCE 必须在本文件任何系统头文件之前定义。 */
+#ifndef _WIN32
+#define _DEFAULT_SOURCE 1
+#endif
 #include "tui.h"
 
 #include <stdarg.h>

@@ -67,20 +67,20 @@ clang -O2 -ffunction-sections -fdata-sections -Wl,--gc-sections -I src \
 
 ## 跨平台二进制
 
-通过 GitHub Actions 自动构建，产物上传到 Actions 页面可下载：
+通过 GitHub Actions 自动构建，每个平台/架构产出单一二进制：
 
-| 平台 | 架构 | 产物 |
-|------|------|------|
-| Windows | x64 / arm64* | `ds-crt-arcade-windows-*.zip` |
-| macOS | x64 / arm64 | `ds-crt-arcade-macos-*.zip` |
-| Linux | x64 / arm64 | `ds-crt-arcade-linux-*.zip` |
+| 平台 | 架构 | 资产命名 |
+|------|------|----------|
+| Windows | x64 / arm64* | `ds-crt-arcade-windows-x64.exe`、`ds-crt-arcade-windows-arm64.exe` |
+| macOS | x64 / arm64 | `ds-crt-arcade-macos-x64`、`ds-crt-arcade-macos-arm64` |
+| Linux | x64 / arm64 | `ds-crt-arcade-linux-x64`、`ds-crt-arcade-linux-arm64` |
 
-\* Windows arm64 需要交叉编译工具链，CI 中标记为实验性构建。
+\* Windows arm64 需要交叉编译工具链，CI 中标记为实验性构建，失败不会阻塞其他产物。
 
 获取方式：
-1. 仓库 **Actions** 页面 → 选择一个 workflow run → **Artifacts** 下载；
-2. 或 `workflow_dispatch` 手动触发一次构建；
-3. 打 `v*` 标签会一并触发构建，配合 Release 发布。
+1. **Releases 页面**（推荐）：打 `v*` 标签（如 `git tag v1.0.0 && git push origin v1.0.0`）会自动构建并把全部二进制发布到 GitHub **Releases**，含运行说明；
+2. 或仓库 **Actions** 页面 → 选择一个 workflow run → **Artifacts** 下载；
+3. 或 `workflow_dispatch` 手动触发一次构建。
 
 ## 小终端适配
 

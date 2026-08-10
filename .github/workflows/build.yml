@@ -70,3 +70,50 @@ jobs:
           name: ds-crt-arcade-${{ matrix.name }}
           path: dist/
           if-no-files-found: error
+
+  # 打 v* 标签（如 v1.0.0）时：汇总全部矩阵产物，发布到 GitHub Releases
+  release:
+    name: 发布 Release
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 下载全部构建产物
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: 重命名并发布
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
+          mkdir -p staging
+          NOTES="## 构建产物\n\n"
+          for d in artifacts/*/; do
+            name="$(basename "$d")"
+            name="${name#ds-crt-arcade-}"   # 去掉 upload-artifact 前缀
+            bin="$(find "$d" -maxdepth 1 -type f -name 'lobby*' -print -quit)"
+            [ -z "$bin" ] && continue
+            ext=""
+            case "$name" in *windows*) ext=".exe";; esac
+            cp "$bin" "staging/ds-crt-arcade-${name}${ext}"
+            NOTES="${NOTES}- \`ds-crt-arcade-${name}${ext}\`\n"
+          done
+          if [ -z "$(ls -A staging)" ]; then
+            echo "没有可发布的产物，跳过"
+            exit 1
+          fi
+          printf '%b' "$NOTES" > notes.md
+          printf '%s\n' '' '## 运行说明' '' '- Linux / macOS：下载后先 `chmod +x`，再 `./ds-crt-arcade-*` 运行' '- Windows：建议用 Windows Terminal 运行（传统 cmd 控制台对宽字符渲染有限）' >> notes.md
+          gh release create "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "ds-crt-arcade ${TAG}" \
+            --notes-file notes.md \
+            staging/*

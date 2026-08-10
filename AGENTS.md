@@ -27,12 +27,12 @@ xmake f -y -m release       # 配置（CI 里还会 -p <platform> -a <arch>）
 3. **PDCurses 构建要点**：必须 `-DPDC_WIDE`（才声明 `mvaddwstr` 等宽字符接口）；链接 `user32 advapi32`；`add_includedirs("deps/pdcurses")` 即可（wincon 端口用相对路径引 `../common/acs*.h`，core 的 debug.c 引 `sys/types.h` 在 UCRT 里存在，能编过）。
 4. `deps/` 是 CI 拉取的第三方源码，已 gitignore，**不入库**。Windows 本地构建要先手动拉 PDCurses 3.9（命令见 README）。
 5. **xmake 3.0.x 无 `--show-output-dir`**（CI 曾因此失败，`Invalid flag`）。定位产物统一用 `find build -type f \( -name lobby -o -name lobby.exe \) -print -quit`。
-6. **macos-x64 的 runner（macos-13）经常排队数十分钟**：非阻塞风险点，产物最终会自动补出，但会拖住依赖它的 release job。可接受，不要为其单独重试。
+6. **macos-x64 已从矩阵移除**：macos-13 runner 在 GitHub Actions 上经常排队数十分钟，会拖死 `needs: build` 的 release job，而 macOS 已由 arm64 覆盖，收益与等待不成比例，故去掉。
 
 ## CI / 发布流程
 
 - `.github/workflows/build.yml`：
-  - `build` 矩阵：windows / macos / linux × x64 / arm64。**windows-arm64 标记 experimental**（`continue-on-error`）——x64 的 clang 无法交叉链接 arm64，预期失败、不阻塞其他产物。
+  - `build` 矩阵：windows×{x64, arm64*}、macos×arm64、linux×{x64, arm64}。**windows-arm64 标记 experimental**（`continue-on-error`）——x64 的 clang 无法交叉链接 arm64，预期失败、不阻塞其他产物。
   - Windows job：先 `choco install llvm`（避开 MSVC 对 C11 复合字面量的限制），再拉 PDCurses 3.9。
   - `release` job：仅 `v*` 标签触发，`needs: build`，`permissions: contents: write`。下载全部矩阵产物 → 重命名 `ds-crt-arcade-<平台>-<架构>`（Windows 加 `.exe`）→ `gh release create` 发布并附运行说明。
 - **发布**：`git tag -a v1.0.0 -m "..." && git push origin v1.0.0` → 自动全平台构建 + 发布到 Releases。产物也可从 Actions 页面 Artifacts 下载。

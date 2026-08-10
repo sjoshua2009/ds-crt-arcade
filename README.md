@@ -72,7 +72,7 @@ clang -O2 -ffunction-sections -fdata-sections -Wl,--gc-sections -I src \
 | 平台 | 架构 | 资产命名 |
 |------|------|----------|
 | Windows | x64 / arm64* | `ds-crt-arcade-windows-x64.exe`、`ds-crt-arcade-windows-arm64.exe` |
-| macOS | x64 / arm64 | `ds-crt-arcade-macos-x64`、`ds-crt-arcade-macos-arm64` |
+| macOS | arm64 | `ds-crt-arcade-macos-arm64` |
 | Linux | x64 / arm64 | `ds-crt-arcade-linux-x64`、`ds-crt-arcade-linux-arm64` |
 
 \* Windows arm64 需要交叉编译工具链，CI 中标记为实验性构建，失败不会阻塞其他产物。

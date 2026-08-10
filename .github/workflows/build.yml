@@ -22,7 +22,6 @@ jobs:
         include:
           - { name: windows-x64,   os: windows-latest,   platform: windows, arch: x64,   experimental: false }
           - { name: windows-arm64, os: windows-latest,   platform: windows, arch: arm64, experimental: true  }
-          - { name: macos-x64,     os: macos-13,         platform: macosx,  arch: x64,   experimental: false }
           - { name: macos-arm64,   os: macos-14,         platform: macosx,  arch: arm64, experimental: false }
           - { name: linux-x64,     os: ubuntu-latest,    platform: linux,   arch: x64,   experimental: false }
           - { name: linux-arm64,   os: ubuntu-24.04-arm, platform: linux,   arch: arm64, experimental: false }

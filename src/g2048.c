@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <unistd.h>
 
 #include "games.h"
 #include "tui.h"
@@ -125,22 +124,20 @@ static void put_tile(int r, int c, int x0, int y0) {
     else snprintf(buf, sizeof buf, "%d", v);
     int len = (int)strlen(buf);
     int pad = (7 - len) / 2;
-    tui_move(y0 + r, x0 + c * 7 + 1);
-    printf("%*s%s%*s", pad, "", buf, 7 - len - pad, "");
+    tui_printf(y0 + r, x0 + c * 7 + 1, "%*s%s%*s", pad, "", buf, 7 - len - pad, "");
 }
 
 static void render(int x0, int y0) {
     tui_set(TUI_GREEN);
     tui_box(y0, x0, y0 + 2 * N + 1, x0 + 7 * N + 1);
     for (int r = 1; r <= N - 1; r++) {
-        tui_move(y0 + 2 * r, x0);
-        printf("╠");
-        for (int c = 0; c < N - 1; c++) {
-            for (int i = 0; i < 7; i++) printf("═");
-            printf("╬");
+        char line[128] = "";
+        strcat(line, "╠");
+        for (int c = 0; c < N; c++) {
+            strcat(line, "═══════");
+            strcat(line, (c == N - 1) ? "╣" : "╬");
         }
-        for (int i = 0; i < 7; i++) printf("═");
-        printf("╣");
+        tui_text(y0 + 2 * r, x0, line);
     }
     for (int r = 0; r < N; r++)
         for (int c = 0; c < N; c++)
@@ -174,7 +171,7 @@ static void show_banner(int x0, int y0, const char *msg, int style, bool end) {
 }
 
 int game_2048_run(void) {
-    srand((unsigned)(time(NULL) ^ (long)getpid() << 4));
+    srand((unsigned)(time(NULL) ^ (long)tui_pid() << 4));
     int x0 = tui_center_x(7 * N + 2);
     int y0 = tui_center_row(2 * N + 6);
 

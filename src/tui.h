@@ -34,6 +34,8 @@ void  tui_set(int style);
 void  tui_box(int r0, int c0, int r1, int c1);          /* 双线框 */
 void  tui_hline(int r, int c0, int c1, int style);      /* 水平实线 */
 void  tui_text(int r, int c, const char *s);            /* 定位输出字符串 */
+void  tui_printf(int r, int c, const char *fmt, ...);   /* 定位格式化输出 */
+void  tui_fill(int r, int c, int count, char ch);       /* 从 (r,c) 起填充 count 个单字符 */
 void  tui_put_safe(int r, int c, const char *s);        /* 输出但不超出右边界（UTF-8 不截半） */
 int   tui_term_cols(void);
 int   tui_term_rows(void);
@@ -41,5 +43,7 @@ int   tui_center_x(int width);        /* 计算使 width 列内容居中的起�
 int   tui_center_row(int height);
 Key   tui_getch_timeout(int ms);      /* 最多等待 ms 毫秒，超时返回 KEY_NONE */
 Key   tui_wait_any(void);             /* 阻塞等待任意按键 */
+void  tui_sleep(int ms);              /* 跨平台休眠（游戏帧率控制） */
+long  tui_pid(void);                  /* 跨平台进程号（rand 播种用） */
 
 #endif

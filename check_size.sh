@@ -2,7 +2,7 @@
 # 用法: check_size.sh <cols> <rows> <游戏键或空>
 # 游戏键只负责进入对应游戏，第一帧渲染即足够验证布局；
 # timeout 兜底，避免管道 EOF 后游戏在轮询循环里空转不退出。
-BIN=./build/linux/arm64/release/lobby
+BIN=${BIN:-./build/linux/arm64/release/lobby}
 COLS=$1
 ROWS=$2
 KEY=${3:-q}

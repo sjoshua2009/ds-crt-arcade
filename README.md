@@ -2,7 +2,7 @@
 
 > A game lobby running in tui · 复古 CRT 绿风格终端游戏大厅
 
-纯 ANSI 转义序列 + termios raw mode 实现的 TUI 游戏大厅，内置 6 款经典小游戏。C11 编写，xmake 构建，无任何第三方依赖，在 Windows / macOS / Linux / Termux 任意终端中都能运行。
+TUI 游戏大厅，内置 6 款经典小游戏。C11 编写，xmake 构建，在 Windows / macOS / Linux / Termux 任意终端中都能运行：POSIX 平台走纯 ANSI 转义序列 + termios raw mode（零依赖），Windows 终端控制走 [PDCurses](https://pdcurses.org/)（构建时由 CI 自动拉取，无需要求用户安装任何东西）。
 
 ## 特性
 
@@ -17,7 +17,8 @@
 ## 技术栈
 
 - C11 · [xmake](https://xmake.io) 构建 · clang 编译器
-- 无第三方依赖：全部终端控制走 ANSI 转义序列 + termios
+- POSIX（Linux / macOS / Termux）：纯 ANSI 转义序列 + termios，无第三方依赖
+- Windows：终端控制使用 PDCurses（宽字符模式 `PDC_WIDE`），仅 CI 构建时拉取源码到 `deps/pdcurses` 一起编译
 
 ## 快速开始
 
@@ -25,6 +26,17 @@
 xmake                                   # 构建
 ./build/linux/arm64/release/lobby       # 运行（具体路径以 xmake 输出为准）
 ```
+
+Windows 本地构建会先拉取 PDCurses 源码（或把 PDCurses 3.9 解压到 `deps/pdcurses`）：
+
+```sh
+mkdir -p deps
+curl -fsSL https://github.com/wmcbrine/PDCurses/archive/refs/tags/3.9.tar.gz | tar -xz -C deps
+mv deps/PDCurses-3.9 deps/pdcurses
+xmake f -y -p windows && xmake
+```
+
+> 提示：Windows 传统控制台（cmd.exe 的旧版控制台）对宽字符/框线字形的渲染有限，建议用 Windows Terminal 运行以获得最佳效果。
 
 运行测试（2048 与俄罗斯方块逻辑，共 26 个断言）：
 
@@ -80,5 +92,6 @@ clang -O2 -ffunction-sections -fdata-sections -Wl,--gc-sections -I src \
 src/           游戏与大厅源码（tui 终端封装 + 6 款游戏 + main 大厅）
 test/          2048 / 俄罗斯方块逻辑单元测试
 check_size.sh  小终端布局冒烟验证脚本（sh + node）
+deps/          构建时拉取的第三方源码（Windows 用 PDCurses，不提交到仓库）
 .github/workflows/build.yml   跨平台构建 CI
 ```

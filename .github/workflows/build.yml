@@ -38,6 +38,14 @@ jobs:
         if: runner.os == 'Windows'
         run: choco install llvm -y --no-progress
 
+      - name: 拉取 PDCurses 源码（Windows 终端控制后端）
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          mkdir -p deps
+          curl -fsSL https://github.com/wmcbrine/PDCurses/archive/refs/tags/3.9.tar.gz | tar -xz -C deps
+          mv deps/PDCurses-3.9 deps/pdcurses
+
       - name: 配置并构建
         shell: bash
         run: |
@@ -48,8 +56,11 @@ jobs:
         shell: bash
         run: |
           mkdir -p dist
-          OUT="$(xmake --show-output-dir)"
-          if [ -f "$OUT/lobby.exe" ]; then BIN="$OUT/lobby.exe"; else BIN="$OUT/lobby"; fi
+          BIN="$(find build -type f \( -name 'lobby' -o -name 'lobby.exe' \) -print -quit)"
+          if [ -z "$BIN" ]; then
+            echo "未找到构建产物"
+            exit 1
+          fi
           cp "$BIN" dist/
           echo "已收集: $(basename "$BIN")"
 

@@ -2,6 +2,9 @@
 build/
 .xmake/
 
+# CI 构建时拉取的第三方源码（Windows 用 PDCurses）
+deps/
+
 # 测试与验证临时文件
 .lob.out
 .sm.err

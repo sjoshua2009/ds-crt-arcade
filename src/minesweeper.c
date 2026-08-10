@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <unistd.h>
 
 #include "games.h"
 #include "tui.h"
@@ -129,8 +128,7 @@ static void render(int x0, int y0) {
             bool cursor = (r == cur_r && c == cur_c) && !over && !won;
             if (cursor) style = TUI_INVERSE;
             tui_set(style);
-            tui_move(y0 + 1 + r, x0 + 1 + c * 3);
-            printf(" %s ", s);
+            tui_printf(y0 + 1 + r, x0 + 1 + c * 3, " %s ", s);
         }
     }
 
@@ -146,10 +144,8 @@ static void render(int x0, int y0) {
 
     /* 状态行（先清两行，避免正常/结束切换时残留） */
     tui_set(TUI_RESET);
-    tui_move(y0 + MS_N + 2, x0);
-    printf("%*s", 44, "");
-    tui_move(y0 + MS_N + 3, x0);
-    printf("%*s", 44, "");
+    tui_fill(y0 + MS_N + 2, x0, 44, ' ');
+    tui_fill(y0 + MS_N + 3, x0, 44, ' ');
     tui_set(TUI_GREEN_DIM);
     if (over)
         tui_put_safe(y0 + MS_N + 2, x0, "踩雷了！ [R] 再来一局  [Q] 返回");
@@ -164,7 +160,7 @@ static void render(int x0, int y0) {
 }
 
 int game_minesweeper_run(void) {
-    srand((unsigned)(time(NULL) ^ (long)getpid() << 1));
+    srand((unsigned)(time(NULL) ^ (long)tui_pid() << 1));
     reset();
     int x0 = tui_center_x(MS_N * 3 + 2);
     int y0 = tui_center_row(MS_N + 6);

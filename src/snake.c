@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <unistd.h>
 
 #include "games.h"
 #include "tui.h"
@@ -53,19 +52,15 @@ static void draw(int x0, int y0) {
 
     /* 先清空盒内区域，避免蛇尾移动后旧位置残留 */
     tui_set(TUI_RESET);
-    for (int r = 0; r < h; r++) {
-        tui_move(y0 + 1 + r, x0 + 1);
-        printf("%*s", W, "");
-    }
+    for (int r = 0; r < h; r++)
+        tui_fill(y0 + 1 + r, x0 + 1, W, ' ');
 
     tui_set(TUI_YELLOW);
-    tui_move(y0 + 1 + food.y, x0 + 1 + food.x);
-    printf("◈");
+    tui_text(y0 + 1 + food.y, x0 + 1 + food.x, "◈");
 
     for (int i = 0; i < len; i++) {
         tui_set(i == 0 ? TUI_INVERSE : TUI_GREEN_BRIGHT);
-        tui_move(y0 + 1 + snake[i].y, x0 + 1 + snake[i].x);
-        printf("█");
+        tui_text(y0 + 1 + snake[i].y, x0 + 1 + snake[i].x, "█");
     }
 
     tui_set(TUI_GREEN_DIM);
@@ -100,7 +95,7 @@ static void show_end(int x0, int y0, bool won) {
 }
 
 int game_snake_run(void) {
-    srand((unsigned)(time(NULL) ^ (long)getpid() << 8));
+    srand((unsigned)(time(NULL) ^ (long)tui_pid() << 8));
     /* 高度随终端自动收缩：先整体缩小，再按剩余空间压缩 */
     h = H_MAX;
     int rows = tui_term_rows();
@@ -128,7 +123,7 @@ int game_snake_run(void) {
         if (paused) {
             draw(x0, y0);
             draw_pause(x0, y0);
-            usleep(60000);
+            tui_sleep(60);
             continue;
         }
 
@@ -158,7 +153,7 @@ int game_snake_run(void) {
             snake[0] = nh;
         }
         draw(x0, y0);
-        usleep((useconds_t)delay_ms * 1000);
+        tui_sleep(delay_ms);
     }
 
     draw(x0, y0);

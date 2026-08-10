@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <unistd.h>
 
 #include "games.h"
 #include "tui.h"
@@ -91,26 +90,15 @@ static void cpu_move(void) {
 
 static void put_sym_abs(int r, int c, int style, const char *s) {
     tui_set(style);
-    tui_move(r, c);
-    printf("%s", s);
+    tui_text(r, c, s);
 }
 
 static void render(int x0, int y0) {
     /* 网格（内部 3 行 3 列，格宽 3 高 2，内容在 2r+1, 4c+1 相对偏移） */
     tui_set(TUI_GREEN);
     tui_box(y0, x0, y0 + 6, x0 + 12);
-    tui_move(y0 + 2, x0);
-    printf("╠");
-    for (int i = 0; i < 3; i++) {
-        printf("═══");
-        printf(i < 2 ? "╬" : "╣");
-    }
-    tui_move(y0 + 4, x0);
-    printf("╠");
-    for (int i = 0; i < 3; i++) {
-        printf("═══");
-        printf(i < 2 ? "╬" : "╣");
-    }
+    tui_text(y0 + 2, x0, "╠═══╬═══╬═══╣");
+    tui_text(y0 + 4, x0, "╠═══╬═══╬═══╣");
 
     for (int pos = 0; pos < 9; pos++) {
         int r = y0 + 1 + (pos / 3) * 2;
@@ -119,8 +107,7 @@ static void render(int x0, int y0) {
         bool cursor = (pos / 3 == cur_r && pos % 3 == cur_c) && result < 0;
         /* 先清格内，避免光标移动后旧位置残留 */
         tui_set(TUI_GREEN);
-        tui_move(r, c);
-        printf("   ");
+        tui_fill(r, c, 3, ' ');
         if (b[pos] == 1)
             put_sym_abs(r, c, hl ? TUI_INVERSE : TUI_GREEN_BRIGHT, "X");
         else if (b[pos] == 2)
@@ -131,10 +118,8 @@ static void render(int x0, int y0) {
 
     /* 状态行（先清两行，避免切换时残留） */
     tui_set(TUI_RESET);
-    tui_move(y0 + 8, x0);
-    printf("%*s", 36, "");
-    tui_move(y0 + 9, x0);
-    printf("%*s", 36, "");
+    tui_fill(y0 + 8, x0, 36, ' ');
+    tui_fill(y0 + 9, x0, 36, ' ');
     tui_set(TUI_GREEN_DIM);
     if (result == 1)      tui_put_safe(y0 + 8, x0, "你赢了！  [R] 再来一局  [Q] 返回");
     else if (result == 2) tui_put_safe(y0 + 8, x0, "电脑赢了  [R] 再来一局  [Q] 返回");
@@ -149,7 +134,7 @@ static void render(int x0, int y0) {
 }
 
 int game_tictactoe_run(void) {
-    srand((unsigned)(time(NULL) ^ (long)getpid() << 2));
+    srand((unsigned)(time(NULL) ^ (long)tui_pid() << 2));
     reset();
     int x0 = tui_center_x(14);
     int y0 = tui_center_row(12);
@@ -166,7 +151,7 @@ int game_tictactoe_run(void) {
             return 0;
         }
         if (thinking) {
-            usleep(350000);
+            tui_sleep(350);
             thinking = false;
             continue;
         }

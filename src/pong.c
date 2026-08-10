@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <unistd.h>
 
 #include "games.h"
 #include "tui.h"
@@ -91,8 +90,7 @@ static void render(int x0, int y0) {
             int bc = (int)bx;
             if (bc >= 0 && bc < pw) line[bc] = 'o';
         }
-        tui_move(y0 + 1 + r, x0 + 1);
-        fputs(line, stdout);
+        tui_text(y0 + 1 + r, x0 + 1, line);
     }
 
     /* 计分 */
@@ -127,7 +125,7 @@ static void render(int x0, int y0) {
 }
 
 int game_pong_run(void) {
-    srand((unsigned)(time(NULL) ^ (long)getpid() << 3));
+    srand((unsigned)(time(NULL) ^ (long)tui_pid() << 3));
     /* 尺寸随终端自动收缩（上限 PW_MAX/PH_MAX，留出最小可玩尺寸） */
     pw = tui_term_cols() - 4;
     ph = tui_term_rows() - 4;
@@ -171,6 +169,6 @@ int game_pong_run(void) {
             step();
         }
         render(x0, y0);
-        usleep(16000);
+        tui_sleep(16);
     }
 }

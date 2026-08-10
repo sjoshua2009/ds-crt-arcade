@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <unistd.h>
 
 #include "games.h"
 #include "tui.h"
@@ -137,8 +136,8 @@ static int ghost_y(void) {
 /* 绘制一格：style 决定颜色，s 是单字符块，横向重复两次（格子 2 字符宽） */
 static void cell(int y, int x, int style, const char *s) {
     tui_set(style);
-    tui_move(y, x);
-    printf("%s%s", s, s);
+    tui_text(y, x, s);
+    tui_text(y, x + 1, s);
 }
 
 static void render(int x0, int y0, bool paused) {
@@ -149,10 +148,8 @@ static void render(int x0, int y0, bool paused) {
 
     /* 先清空棋盘内容区，避免方块移动/旋转后旧位置残留 */
     tui_set(TUI_RESET);
-    for (int r = 0; r < BH; r++) {
-        tui_move(y0 + 1 + r, x0 + 1);
-        printf("%*s", BW * 2, "");
-    }
+    for (int r = 0; r < BH; r++)
+        tui_fill(y0 + 1 + r, x0 + 1, BW * 2, ' ');
 
     /* 幽灵投影 */
     if (g > py)
@@ -189,10 +186,8 @@ static void render(int x0, int y0, bool paused) {
     tui_text(y0 + 1, ix + 2, "NEXT");
     /* 清空预览区，避免换下一个形状时旧方块残留 */
     tui_set(TUI_RESET);
-    for (int r = 0; r < 4; r++) {
-        tui_move(y0 + 2 + r, ix + 3);
-        printf("%*s", 14, "");
-    }
+    for (int r = 0; r < 4; r++)
+        tui_fill(y0 + 2 + r, ix + 3, 14, ' ');
     tui_set(TUI_GREEN_BRIGHT);
     for (int r = 0; r < 4; r++)
         for (int c = 0; c < 4; c++)
@@ -242,7 +237,7 @@ static void show_over(int x0, int y0) {
 }
 
 int game_tetris_run(void) {
-    srand((unsigned)(time(NULL) ^ (long)getpid() << 16));
+    srand((unsigned)(time(NULL) ^ (long)tui_pid() << 16));
     memset(board, 0, sizeof board);
     score = lines = 0;
     level = 1;
@@ -275,7 +270,7 @@ int game_tetris_run(void) {
         }
         if (paused) {
             render(x0, y0, true);
-            usleep(60000);
+            tui_sleep(60);
             continue;
         }
         acc += 40;
@@ -284,7 +279,7 @@ int game_tetris_run(void) {
             if (!step_down()) lock();
         }
         render(x0, y0, false);
-        usleep(40000);
+        tui_sleep(40);
     }
 
     render(x0, y0, false);

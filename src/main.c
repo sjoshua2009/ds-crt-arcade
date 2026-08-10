@@ -134,8 +134,7 @@ int main(void) {
 quit:
     tui_clear();
     tui_set(TUI_GREEN_BRIGHT);
-    tui_move(tui_center_row(1), tui_center_x(20));
-    printf("BYE · 欢迎再来游戏大厅\n");
+    tui_text(tui_center_row(1), tui_center_x(20), "BYE · 欢迎再来游戏大厅");
     tui_set(TUI_RESET);
     return 0;
 }
